@@ -7,43 +7,22 @@
 using namespace cv;
 using namespace std;
 
-Mat cfar(Mat img, int num_train, int num_guard, float rate1, float rate2, int block_size) {
-
-Mat a(img.rows, img.cols, CV_8UC3, Scalar(0,0,0));
+Mat cfar(Mat img, int num_train, int num_guard, float rate1, int block_size) {
+  Mat a(img.rows, img.cols, CV_8UC3, Scalar(0,0,0));
   
-  int num_rows = a.rows-(a.rows%num_train);
-  int num_cols = a.cols-(a.cols%num_train);
+  int num_rows = a.rows - (a.rows%num_train) ;
+  int num_cols = a.cols - (a.cols%num_train) ;
   int num_side = num_train/2;
   
-  double alpha1 = num_train * ( pow(rate1, -1.00/num_train) -1 );	
-  double alpha2 = num_train * ( pow(rate2, -1.00/num_train) -1 );  
+ 	
+  double alpha1 = num_train * ( pow(rate1, -1.00/num_train) -1 );  
 
-  for(int i = num_side; i <= num_rows; i += num_side*2) 
-    for(int j = num_side; j <= num_cols; j += num_side*2) {
+  for(int i = num_side; i <= num_rows; i += block_size) 
+    for(int j = num_side; j <= num_cols; j += block_size) {
        
        int sum1 = 0, sum2 = 0;
        double thresh, p_noise;
-      
-	//CASO-CFAR :: blue blocks
-       for(int x = i-num_side; x <= i-num_guard; x++) 
-         for(int y = j-num_side; y <= j-num_guard; y++)
-           sum1 += img.at<Vec3b>(x,y)[0];
 
-       for(int x = i+num_guard; x <= i+num_side; x++)
-         for(int y = j+num_guard; y <= j+num_side; y++)
-           sum2 += img.at<Vec3b>(x,y)[0];
-  	
-       p_noise=min(sum1,sum2)/(num_train*num_train);
-       thresh = alpha1*p_noise;
-
-       if( img.at<Vec3b>(i,j)[0] < thresh) {
-
-         for(int k = i-block_size/2; k <= i+block_size/2; k++)
-           for(int l = j-block_size/2; l <= j+block_size/2; l++)
-             a.at<Vec3b>(k,l)[0] = 255;	
-	}
-
-	//CA-CFAR :: green blocks
        for(int x = i-(num_guard/2); x <= i+(num_guard/2)+1; x++)
          for(int y = j-(num_guard/2); y <= j+(num_guard/2)+1; y++)
            sum1 += img.at<Vec3b>(x,y)[0];
@@ -53,13 +32,13 @@ Mat a(img.rows, img.cols, CV_8UC3, Scalar(0,0,0));
            sum2 += img.at<Vec3b>(x,y)[0];
   
        p_noise = fabs(sum1-sum2)/(num_train*num_train);
-       thresh = alpha2*p_noise;
+       thresh = alpha1*p_noise;
   
        if( img.at<Vec3b>(i,j)[0] > thresh) {
 
          for(int k = i-block_size/2; k <= i+block_size/2; k++)
            for(int l = j-block_size/2; l <= j+block_size/2; l++)
-             a.at<Vec3b>(k,l)[1] = 255;
+             a.at<Vec3b>(k,l)[0] = 255;
 	}   
  
   }
@@ -102,8 +81,8 @@ void kalmanfilter(Mat image, Mat frame, KalmanFilter KF, Mat_<float> measurement
           Mat estimated = KF.correct(measurement);
  	  Point statePt(estimated.at<float>(0),estimated.at<float>(1));
 
-       circle(image, measPt, 85,Scalar(255,0,255)); 
-       circle(image, statePt, 85, Scalar(0,255,255));
+       circle(image, measPt, 65,Scalar(255,0,255)); 
+       circle(image, statePt, 65, Scalar(0,255,255));
 }
 
 
@@ -137,7 +116,7 @@ int main() {
     
     cvtColor(image,hsv, COLOR_BGR2HSV);
 
-    Mat frame = cfar(hsv, 9, 2, 0.6, 0.3, 6);
+    Mat frame = cfar(hsv, 8, 6, 0.01, 3);
     
     kalmanfilter(image, frame, KF, measurement);
     imshow("Frame", frame);
