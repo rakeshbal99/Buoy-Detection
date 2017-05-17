@@ -10,10 +10,10 @@ using namespace std;
 
 Mat cfar(Mat& frame, Mat img, int num_train, int num_guard, float rate1, int block_size) {
 
-  Mat a(img.rows, img.cols, CV_8UC3, Scalar(0,0,0));
+  Mat a(img.rows, img.cols, CV_8UC1, Scalar(0));
   
-  int num_rows = a.rows - (a.rows%num_train) ;
-  int num_cols = a.cols - (a.cols%num_train) ;
+  int num_rows = img.rows - (img.rows%num_train) ;
+  int num_cols = img.cols - (img.cols%num_train) ;
   int num_side = num_train/2;
   
  	
@@ -40,12 +40,11 @@ Mat cfar(Mat& frame, Mat img, int num_train, int num_guard, float rate1, int blo
 
          for(int k = i-block_size/2; k <= i+block_size/2; k++)
            for(int l = j-block_size/2; l <= j+block_size/2; l++)
-             a.at<Vec3b>(k,l)[0] = 255;
+             a.at<uchar>(k,l) = 255;
 	}   
  
   }
-
-  return a;
+ return a;
 }
 
 int main() {
@@ -62,10 +61,9 @@ int main() {
   
       cvtColor(frame, hsv, COLOR_BGR2HSV);
 
-      Mat image = cfar(frame, hsv, 8, 6, 0.01, 3);
-      cvtColor(image, grey, COLOR_BGR2GRAY);
-   
-      imshow("cfar_output", image);    
+      Mat a = cfar(frame, hsv, 8, 6, 0.01, 3);
+    
+      imshow("cfar_output", a);
       imshow("object", frame);
  	   
       if(waitKey(1)=='q')
