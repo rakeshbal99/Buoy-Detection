@@ -11,9 +11,9 @@ Mat cfar(Mat img, int num_train, int num_guard, float rate1, float rate2, int bl
 
 Mat a(img.rows, img.cols, CV_8UC3, Scalar(0,0,0));
   
-  int num_rows = a.rows-(a.rows%(num_train + num_guard));
-  int num_cols = a.cols-(a.cols%(num_train + num_guard));
-  int num_side = (num_train/2)+(num_guard/2);
+  int num_rows = a.rows-(a.rows%num_train);
+  int num_cols = a.cols-(a.cols%num_train);
+  int num_side = num_train/2;
   
   double alpha1 = num_train * ( pow(rate1, -1.00/num_train) -1 );	
   double alpha2 = num_train * ( pow(rate2, -1.00/num_train) -1 );  
