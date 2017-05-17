@@ -8,7 +8,7 @@ using namespace cv;
 using namespace std;
 
 Mat cfar(Mat img, int num_train, int num_guard, float rate1, int block_size) {
-  Mat a(img.rows, img.cols, CV_8UC3, Scalar(0,0,0));
+  Mat a(img.rows, img.cols, CV_8UC1, Scalar(0));
   
   int num_rows = a.rows - (a.rows%num_train) ;
   int num_cols = a.cols - (a.cols%num_train) ;
@@ -38,7 +38,7 @@ Mat cfar(Mat img, int num_train, int num_guard, float rate1, int block_size) {
 
          for(int k = i-block_size/2; k <= i+block_size/2; k++)
            for(int l = j-block_size/2; l <= j+block_size/2; l++)
-             a.at<Vec3b>(k,l)[0] = 255;
+             a.at<uchar>(k,l) = 255;
 	}   
  
   }
@@ -55,7 +55,7 @@ void kalmanfilter(Mat image, Mat frame, KalmanFilter KF, Mat_<float> measurement
     for(int i=200; i<frame.rows; i++)
       for(int j=0; j<frame.cols; j++) {
 
-	if( frame.at<Vec3b>(i,j)[0]==255 || frame.at<Vec3b>(i,j)[1]==255 ) {	
+	if( frame.at<uchar>(i,j) == 255 ) {	
 		sum_x+=i;
 		sum_y+=j;
 		count++;
